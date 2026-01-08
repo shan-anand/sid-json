@@ -53,6 +53,7 @@ namespace sid::json {
 /**
  * @struct parser
  * @brief Internal json parser
+ *        CRTP base class (Curiously Recurring Template Pattern)
  */
 template <typename Derived, typename parser_input, typename pos_type>
 struct parser
@@ -65,8 +66,8 @@ struct parser
   void parse();
 
 protected:
-  using ContinerStack = std::stack<value_type>;
-  ContinerStack       m_containerStack; //! Container stack
+  using ContainerStack = std::stack<value_type>;
+  ContainerStack       m_containerStack; //! Container stack
 
   //! constructor
   parser(const parser_input& _in, parser_output& _out)
@@ -133,6 +134,10 @@ private:
   bool skip_leading_spaces();
 };
 
+/*
+ * @struct char_parser
+ * @brief CRTP specialization for char parser (Curiously Recurring Template Pattern)
+ */
 struct char_parser : public parser<char_parser, char_parser_input, const char*>
 {
   using pos_type = const char*;
@@ -176,6 +181,10 @@ struct char_parser : public parser<char_parser, char_parser_input, const char*>
   }
 };
 
+/*
+ * @struct buffer_parser
+ * @brief CRTP specialization for buffer parser (Curiously Recurring Template Pattern)
+ */
 struct buffer_parser : public parser<buffer_parser, buffer_parser_input, std::streampos>
 {
   using pos_type = std::streampos;
