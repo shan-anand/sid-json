@@ -67,13 +67,13 @@ public:
       // Get the file size
       struct stat fileStat;
       if ( ::fstat(m_fd, &fileStat) < 0 )
-        throw std::system_error(errno, std::system_category(), "memory_map:fstat");
+        throw std::system_error(errno, std::system_category(), "memory_map: fstat");
       m_size = fileStat.st_size;
       // Memory map the entire file
-      int flags = MAP_SHARED | MAP_POPULATE;
+      int flags = MAP_PRIVATE | MAP_POPULATE;
       m_begin = ::mmap(nullptr, m_size, PROT_READ, flags, m_fd, 0);
       if ( m_begin == MAP_FAILED )
-        throw std::system_error(errno, std::system_category(), "memory_map:mmap");
+        throw std::system_error(errno, std::system_category(), "memory_map: mmap");
     }
     catch (std::exception&)
     {

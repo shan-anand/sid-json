@@ -411,6 +411,7 @@ std::string& local::get_file_contents(std::string& _out, const std::string& _fil
   return _out;
 }
 
+
 /*
 std::string local::get_file_contents(const std::string& _filePath)
 {
