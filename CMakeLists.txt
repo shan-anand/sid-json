@@ -3,7 +3,22 @@ project(sid-json VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
+    if(HAS_LIBCXX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    endif()
+endif()
+
+# Show verbose compilation output
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+# Generate compile_commands.json for LSP support
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Include directories
 include_directories(include)
