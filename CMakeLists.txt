@@ -5,95 +5,76 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    include(CheckCXXCompilerFlag)
-    check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
-    if(HAS_LIBCXX)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
-    endif()
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
+  if(HAS_LIBCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+  endif()
 endif()
 
 # Show verbose compilation output
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Generate compile_commands.json for LSP support
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 # Include directories
 include_directories(include)
 include_directories(include/sid)
 
-# Source files
-set(SOURCES
-    src/sid/json/utils.cpp
-    src/sid/json/format.cpp
-    src/sid/json/parser_stats.cpp
-    src/sid/json/time_calc.cpp
-    src/sid/json/value.cpp
-    src/sid/json/schema.cpp
+# Add subdirectories
+add_subdirectory(src/sid/json)
+add_subdirectory(src/sid/json-client)
+
+# Export targets for CMake package
+install(EXPORT sid-jsonTargets
+  FILE sid-jsonTargets.cmake
+  NAMESPACE sidjson::
+  DESTINATION lib/cmake/sid-json
 )
 
-# Header files
-set(HEADERS
-    include/sid/json/format.h
-    include/sid/json/json.h
-    include/sid/json/parser_control.h
-    include/sid/json/parser_stats.h
-    include/sid/json/schema.h
-    include/sid/json/value.h
+# Generate and install the ConfigVersion and Config files
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/sid-json-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
 )
-
-# Create the library
-add_library(sid-json ${SOURCES} ${HEADERS})
-
-add_executable(sid-json-client
-  src/sid/json-client/main.cpp
-  $<TARGET_OBJECTS:sid-json>
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/sid-json-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/sid-json-config.cmake"
+  INSTALL_DESTINATION lib/cmake/sid-json
 )
-
-# Add coverage flags for Debug builds to client
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(sid-json-client PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-        target_link_options(sid-json-client PRIVATE -fprofile-instr-generate)
-    else()
-        target_compile_options(sid-json-client PRIVATE --coverage)
-        target_link_options(sid-json-client PRIVATE --coverage)
-    endif()
-endif()
-# Set library properties
-set_target_properties(sid-json PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION 1
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/sid-json-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/sid-json-config-version.cmake"
+  DESTINATION lib/cmake/sid-json
 )
 
 # Install targets
-install(TARGETS sid-json sid-json-client
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
+install(TARGETS sid-json-shared sid-json-static sid-json-client
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY include/sid
     DESTINATION include
 )
 
+
 # Show install messages
 set(CMAKE_INSTALL_MESSAGE ALWAYS)
 
+# Show a message to build using Ninja if Ninja is the generator
+if(CMAKE_GENERATOR STREQUAL "Ninja")
+  message(STATUS "================================")
+  message(STATUS "To build the project, run: ninja")
+  message(STATUS "================================")
+endif()
+
 # Add tests subdirectory
 if(BUILD_TESTING)
-    # Add coverage flags for Debug builds
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            target_compile_options(sid-json PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-            target_link_options(sid-json PRIVATE -fprofile-instr-generate)
-        else()
-            target_compile_options(sid-json PRIVATE --coverage)
-            target_link_options(sid-json PRIVATE --coverage)
-        endif()
-    endif()
     add_subdirectory(tests)
 endif()
 
