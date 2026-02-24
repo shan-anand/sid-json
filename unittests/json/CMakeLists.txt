@@ -25,7 +25,7 @@ add_executable(sid-json-tests ${TEST_SOURCES})
 # Link libraries
 target_link_libraries(sid-json-tests 
     PRIVATE
-    sid-json
+    sid-json-lib
     GTest::GTest
     GTest::Main
 )
