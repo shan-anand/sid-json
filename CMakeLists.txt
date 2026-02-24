@@ -6,12 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
-  if(HAS_LIBCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+# Use libc++ when not building tests (GTest requires libstdc++)
+if(NOT BUILD_TESTING)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
+    if(HAS_LIBCXX)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    endif()
   endif()
 endif()
 
@@ -23,8 +26,8 @@ include_directories(include)
 include_directories(include/sid)
 
 # Add subdirectories
-add_subdirectory(src/sid/json)
-add_subdirectory(src/sid/json-client)
+add_subdirectory(lib/json)
+add_subdirectory(tools/json)
 
 # Export targets for CMake package
 install(EXPORT sid-jsonTargets
@@ -52,7 +55,7 @@ install(FILES
 )
 
 # Install targets
-install(TARGETS sid-json-shared sid-json-static sid-json-client
+install(TARGETS sid-json-lib-shared sid-json-lib-static sid-json
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
@@ -75,7 +78,8 @@ endif()
 
 # Add tests subdirectory
 if(BUILD_TESTING)
-    add_subdirectory(tests)
+    enable_testing()
+    add_subdirectory(unittests/json)
 endif()
 
 # Uninstall target

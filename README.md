@@ -31,21 +31,23 @@ sid-json/
 │   ├── format.h               # Output formatting
 │   ├── parser_stats.h         # Parsing statistics
 │   └── schema.h               # Schema validation (TODO)
-├── src/sid/json/           # Implementation files
-│   ├── value.cpp              # Implemenetaion of JSON value class
+├── lib/json/               # Library Implementation files
+│   ├── value.cpp              # Implementation of JSON value class
 │   ├── parser.h               # Internal parser implementation
 │   ├── parser_io.h            # Input structures for Character and Buffer parsers
 │   ├── format.cpp             # Output formatting
 │   ├── memory_map.h           # Memory mapping utilities
 │   ├── parser_stats.cpp       # Implementation of parsing statistics
 │   ├── schema.cpp             # Schema (TODO)
-│   ├── time_calc.cpp          # Implementation of time utitilies
+│   ├── time_calc.cpp          # Implementation of time utilities
 │   ├── time_calc.h            # Internal timing utilities
 │   ├── utils.cpp              # Implementation of internal utility functions
-│   └── utils.h                # Internal utility functions
-├── src/sid/json-client/    # Client application
-│   └── main.cpp               # Example/test client
-├── tests/                  # Unit tests
+│   ├── utils.h                # Internal utility functions
+│   └── CMakeLists.txt         # Library build configuration
+├── tools/json/             # Command-line tool
+│   ├── main.cpp               # JSON parser/validator tool
+│   └── CMakeLists.txt         # Tool build configuration
+├── unittests/json/         # Unit tests
 │   ├── test_format.cpp        # Format tests
 │   ├── test_main.cpp          # Test runner
 │   ├── test_parser.cpp        # Parser tests
@@ -109,14 +111,14 @@ ctest --verbose
 
 # Generate coverage report
 # For GCC:
-lcov --capture --directory . --output-file coverage.info
-lcov --remove coverage.info '/usr/*' --output-file coverage.info
-genhtml coverage.info --output-directory coverage_html
+lcov --capture --directory . --output-file default.info
+lcov --remove default.info '/usr/*' --output-file default.info
+genhtml default.info --output-directory default_html
 
 # For Clang:
-LLVM_PROFILE_FILE="coverage.profraw" ctest
-llvm-profdata merge -sparse coverage.profraw -o coverage.profdata
-llvm-cov show ./tests/sid-json-tests -instr-profile=coverage.profdata -format=html -output-dir=coverage_html
+ctest
+llvm-profdata merge -sparse default.profraw -o default.profdata
+llvm-cov show ./tests/sid-json-tests -instr-profile=default.profdata -format=html -output-dir=default_html
 ```
 
 ### Installation
@@ -232,12 +234,12 @@ The library is optimized for performance with:
 - Fast numeric parsing
 - Built-in timing measurements
 
-## Client (sid-json-client)
+## Command-Line Tool (sid-json)
 
-The sid-json library includes a command-line client application for parsing and validating JSON files.
+The sid-json library includes a command-line tool for parsing and validating JSON files.
 
 ```
-Usage: sid-json-client [options] [<json-file>|--stdin]
+Usage: sid-json [options] [<json-file>|--stdin]
        Interactive mode: Requires either <json-file> or --stdin
        Pipe mode: Automatically reads from stdin
        Tip: It's a good practice to start relative paths with ./
@@ -265,13 +267,13 @@ Options: <key>[=<value>]
                                      * string-stream for --stdin
                                    Note: mmap for --stdin is invalid and ignored
 Examples:
-  sid-json-client ./data.json               # Parse data.json file
-  sid-json-client --stdin                   # Read from stdin interactively
-  sid-json-client -o=pretty ./data.json     # Parse and show pretty output
-  sid-json-client -k -s ./data.json         # Allow flexible keys and strings
-  sid-json-client --dup=append ./data.json  # Append duplicate keys
-  echo '{"key":"value"}' | sid-json-client  # Parse from stdin (pipe)
-  cat ./data.json | sid-json-client         # Parse from stdin (pipe)
+  sid-json ./data.json               # Parse data.json file
+  sid-json --stdin                   # Read from stdin interactively
+  sid-json -o=pretty ./data.json     # Parse and show pretty output
+  sid-json -k -s ./data.json         # Allow flexible keys and strings
+  sid-json --dup=append ./data.json  # Append duplicate keys
+  echo '{"key":"value"}' | sid-json  # Parse from stdin (pipe)
+  cat ./data.json | sid-json         # Parse from stdin (pipe)
 ```
 
 ## License
