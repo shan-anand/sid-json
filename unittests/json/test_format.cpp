@@ -244,10 +244,83 @@ TEST_F(FormatTest, ComplexFormatting) {
     fmt.indent = 2;
     std::string result = fmt.to_string();
     EXPECT_FALSE(result.empty());
+
+    fmt.key_no_quotes = true;
+    fmt.string_no_quotes = true;
+    result = fmt.to_string();
+    EXPECT_FALSE(result.empty());
     
     // Test compact format
     format compact_fmt(format_type::compact);
     result = compact_fmt.to_string();
     EXPECT_FALSE(result.empty());
     EXPECT_EQ(result.find('\n'), std::string::npos);
+}
+
+TEST_F(FormatTest, FormatGet)
+{
+    // Basic types
+    format fmt = format::get("compact");
+    EXPECT_EQ(fmt.type, format_type::compact);
+    EXPECT_FALSE(fmt.key_no_quotes);
+    EXPECT_FALSE(fmt.string_no_quotes);
+
+    fmt = format::get("pretty");
+    EXPECT_EQ(fmt.type, format_type::pretty);
+    EXPECT_FALSE(fmt.key_no_quotes);
+    EXPECT_FALSE(fmt.string_no_quotes);
+
+    // xcompact and xpretty
+    fmt = format::get("xcompact");
+    EXPECT_EQ(fmt.type, format_type::compact);
+    EXPECT_TRUE(fmt.key_no_quotes);
+    EXPECT_FALSE(fmt.string_no_quotes);
+
+    fmt = format::get("xpretty");
+    EXPECT_EQ(fmt.type, format_type::pretty);
+    EXPECT_TRUE(fmt.key_no_quotes);
+    EXPECT_FALSE(fmt.string_no_quotes);
+
+    // key-no-quotes and string-no-quotes
+    fmt = format::get("pretty:key-no-quotes");
+    EXPECT_TRUE(fmt.key_no_quotes);
+    fmt = format::get("pretty:key-no-quotes=true");
+    EXPECT_TRUE(fmt.key_no_quotes);
+    fmt = format::get("pretty:key-no-quotes=false");
+    EXPECT_FALSE(fmt.key_no_quotes);
+    EXPECT_THROW(fmt = format::get("pretty:key-no-quotes=wrong"), std::runtime_error);
+    EXPECT_FALSE(fmt.key_no_quotes);
+    fmt = format::get("pretty:string-no-quotes");
+    EXPECT_TRUE(fmt.string_no_quotes);
+    fmt = format::get("pretty:string-no-quotes=true");
+    EXPECT_TRUE(fmt.string_no_quotes);
+    fmt = format::get("pretty:string-no-quotes=false");
+    EXPECT_FALSE(fmt.string_no_quotes);
+    EXPECT_THROW(fmt = format::get("pretty:string-no-quotes=wrong"), std::runtime_error);
+
+    // separator and indent (pretty only)
+    fmt = format::get("pretty:sep=tab:indent=5");
+    EXPECT_EQ(fmt.separator, '\t');
+    EXPECT_EQ(fmt.indent, 5);
+    fmt = format::get("pretty:sep=space:indent=2");
+    EXPECT_EQ(fmt.separator, ' ');
+    EXPECT_EQ(fmt.indent, 2);
+    fmt = format::get("pretty:sep=s:indent=3");
+    EXPECT_EQ(fmt.separator, ' ');
+    EXPECT_EQ(fmt.indent, 3);
+
+    // Invalid format type
+    EXPECT_THROW(format::get("PRETTY"), std::invalid_argument);
+    // Invalid parameter
+    EXPECT_THROW(format::get("pretty:badparam"), std::runtime_error);
+    // Invalid separator for compact
+    EXPECT_THROW(format::get("compact:sep=tab"), std::runtime_error);
+    // Invalid indent for compact
+    EXPECT_THROW(format::get("compact:indent=2"), std::runtime_error);
+    // Invalid separator value
+    EXPECT_THROW(format::get("pretty:sep=x"), std::runtime_error);
+    // Missing indent value
+    EXPECT_THROW(format::get("pretty:indent"), std::runtime_error);
+    // Invalid indent value
+    EXPECT_THROW(format::get("pretty:indent=bad"), std::runtime_error);
 }

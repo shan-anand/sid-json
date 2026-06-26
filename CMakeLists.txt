@@ -1,10 +1,35 @@
 cmake_minimum_required(VERSION 3.10)
 project(sid-json VERSION 1.0.0)
 
+# Option to enable code coverage
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+
+# Set default optimization, but allow override for coverage
+if(NOT ENABLE_COVERAGE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+endif()
+
+# Coverage flags for GCC/gcov or Clang/llvm-cov
+if(ENABLE_COVERAGE)
+  message(STATUS "Building with coverage instrumentation enabled.")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(COVERAGE_CXX_FLAGS "-g -O0")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+      set(COVERAGE_CXX_FLAGS "${COVERAGE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+      set(COVERAGE_LINK_FLAGS "-fprofile-arcs -ftest-coverage")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      set(COVERAGE_CXX_FLAGS "${COVERAGE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
+      set(COVERAGE_LINK_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${COVERAGE_LINK_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${COVERAGE_LINK_FLAGS}")
+  endif()
+endif()
 
 # Use libc++ when not building tests (GTest requires libstdc++)
 if(NOT BUILD_TESTING)

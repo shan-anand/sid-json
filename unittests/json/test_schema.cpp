@@ -253,4 +253,6 @@ TEST_F(SchemaTest, PropertyConstraints) {
     
     EXPECT_EQ(prop.minProperties.value(), 1);
     EXPECT_EQ(prop.maxProperties.value(), 5);
+
+    prop.clear();
 }

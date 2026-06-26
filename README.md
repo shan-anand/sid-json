@@ -97,6 +97,7 @@ make
 
 This will create a `libsid-json` library that can be linked to your projects.
 
+
 ### Testing
 ```bash
 # Build with tests
@@ -108,18 +109,45 @@ ctest
 
 # Run with verbose output
 ctest --verbose
-
-# Generate coverage report
-# For GCC:
-lcov --capture --directory . --output-file default.info
-lcov --remove default.info '/usr/*' --output-file default.info
-genhtml default.info --output-directory default_html
-
-# For Clang:
-ctest
-llvm-profdata merge -sparse default.profraw -o default.profdata
-llvm-cov show ./tests/sid-json-tests -instr-profile=default.profdata -format=html -output-dir=default_html
 ```
+
+## Code Coverage (GCC/gcov or Clang/llvm-cov)
+
+To generate and view code coverage in VS Code:
+
+1. **Configure CMake with coverage enabled:**
+  ```bash
+  mkdir build && cd build
+  cmake -DBUILD_TESTING=ON -DENABLE_COVERAGE=ON ..
+  make
+  ```
+
+2. **Run unit tests to generate coverage data:**
+  ```bash
+  ctest
+  # or run test binaries directly
+  ```
+
+3. **Generate coverage report:**
+  - For GCC/gcov:
+    ```bash
+    lcov --capture --directory . --output-file coverage.info
+    lcov --remove coverage.info '/usr/*' --output-file coverage.info
+    genhtml coverage.info --output-directory coverage_html
+    ```
+  - For Clang/llvm-cov:
+    ```bash
+    llvm-profdata merge -sparse default.profraw -o default.profdata
+    llvm-cov export ./sid-json-tests -instr-profile=default.profdata -format=lcov > coverage.info
+    llvm-cov show ./path/to/test-binary -instr-profile=default.profdata -format=html -output-dir=coverage_html
+    ```
+
+4. **View coverage in VS Code:**
+  - Install the **Coverage Gutters** extension.
+  - Open the coverage report (e.g., `coverage.info` or `default.profdata`) in VS Code.
+  - Click the Coverage Gutters icon to highlight covered/uncovered lines in the editor.
+
+See the [Coverage Gutters extension](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) for more details.
 
 ### Installation
 ```bash
@@ -284,3 +312,4 @@ MIT License - see LICENSE file for details.
 
 Shan Anand (anand.gs@gmail.com)  
 Source: https://github.com/shan-anand/sid-json
+

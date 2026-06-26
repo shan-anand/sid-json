@@ -9,6 +9,7 @@ find_package(GTest REQUIRED)
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/include/sid)
+include_directories(${CMAKE_SOURCE_DIR}/lib/json)
 
 # Test sources
 set(TEST_SOURCES
@@ -16,6 +17,8 @@ set(TEST_SOURCES
     test_parser.cpp
     test_format.cpp
     test_schema.cpp
+    test_utils.cpp
+    test_time_calc.cpp
     test_main.cpp
 )
 

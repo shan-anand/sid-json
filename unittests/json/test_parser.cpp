@@ -156,6 +156,8 @@ TEST_F(ParserTest, ParseComments) {
     EXPECT_NO_THROW(value::parse(out, json));
     EXPECT_EQ(out.jroot["name"].get_str(), "test");
     EXPECT_EQ(out.jroot["value"].get_int64(), 42);
+    std::string stats_str = out.stats.to_string();
+    EXPECT_FALSE(stats_str.empty());
 }
 
 TEST_F(ParserTest, ParseErrors) {

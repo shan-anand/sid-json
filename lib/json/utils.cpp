@@ -67,6 +67,10 @@ bool json::to_num(const std::string& _str, uint32_t& _out, std::string* _pstrErr
 {
   try
   {
+    // Find the first non-whitespace character
+    auto first = _str.find_first_not_of(" \t\n\r\f\v");
+    if (first != std::string::npos && _str[first] == '-')
+        throw std::out_of_range("-1 is negative; out of range for unsigned");
     size_t idx = 0;
     unsigned long long val = std::stoul(_str, &idx);
     if (idx != _str.length())
@@ -145,6 +149,10 @@ bool json::to_num(const std::string& _str, uint64_t& _out, std::string* _pstrErr
 {
   try
   {
+    // Find the first non-whitespace character
+    auto first = _str.find_first_not_of(" \t\n\r\f\v");
+    if (first != std::string::npos && _str[first] == '-')
+        throw std::out_of_range("-1 is negative; out of range for unsigned");
     size_t idx = 0;
     _out = std::stoull(_str, &idx);
     if (idx != _str.length())
