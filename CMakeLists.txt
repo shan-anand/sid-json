@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(sid-json VERSION 1.0.0)
 
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Option to enable code coverage
 option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
 
@@ -13,35 +17,37 @@ if(NOT ENABLE_COVERAGE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif()
 
-# Coverage flags for GCC/gcov or Clang/llvm-cov
-if(ENABLE_COVERAGE)
-  message(STATUS "Building with coverage instrumentation enabled.")
+# Define coverage flags
+if(ENABLE_COVERAGE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(COVERAGE_CXX_FLAGS "-g -O0")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-      set(COVERAGE_CXX_FLAGS "${COVERAGE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-      set(COVERAGE_LINK_FLAGS "-fprofile-arcs -ftest-coverage")
+      set(MY_COVERAGE_COMPILE_OPTIONS -g -O0 -fprofile-arcs -ftest-coverage)
+      set(MY_COVERAGE_LINK_OPTIONS -fprofile-arcs -ftest-coverage)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      set(COVERAGE_CXX_FLAGS "${COVERAGE_CXX_FLAGS} -fprofile-instr-generate -fcoverage-mapping")
-      set(COVERAGE_LINK_FLAGS "-fprofile-instr-generate -fcoverage-mapping")
+      set(MY_COVERAGE_COMPILE_OPTIONS -g -O0 -fprofile-instr-generate -fcoverage-mapping)
+      set(MY_COVERAGE_LINK_OPTIONS -fprofile-instr-generate)
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_CXX_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${COVERAGE_LINK_FLAGS}")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${COVERAGE_LINK_FLAGS}")
+    message(STATUS "Coverage instrumentation enabled for sid-json targets.")
   endif()
 endif()
 
-# Use libc++ when not building tests (GTest requires libstdc++)
-if(NOT BUILD_TESTING)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    include(CheckCXXCompilerFlag)
-    check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
-    if(HAS_LIBCXX)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
-    endif()
+
+# Use libc++ when building with Clang
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-stdlib=libc++" HAS_LIBCXX)
+  if(HAS_LIBCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++")
+    message(STATUS "Linking against libc++")
+  else()
+    message(STATUS "Linking against libstdc++ (default)")
   endif()
+else()
+  message(STATUS "Linking against libstdc++ (default)")
 endif()
+
 
 # Show verbose compilation output
 set(CMAKE_VERBOSE_MAKEFILE ON)

@@ -1,10 +1,16 @@
-cmake_minimum_required(VERSION 3.10)
 
 # Enable testing
 enable_testing()
 
-# Find Google Test
-find_package(GTest REQUIRED)
+# Fetch Google Test
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -29,19 +35,14 @@ add_executable(sid-json-tests ${TEST_SOURCES})
 target_link_libraries(sid-json-tests 
     PRIVATE
     sid-json-lib
-    GTest::GTest
-    GTest::Main
+    gtest
+    gtest_main
 )
 
-# Add coverage flags for Debug builds
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_compile_options(sid-json-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
-        target_link_options(sid-json-tests PRIVATE -fprofile-instr-generate)
-    else()
-        target_compile_options(sid-json-tests PRIVATE --coverage)
-        target_link_options(sid-json-tests PRIVATE --coverage)
-    endif()
+# Add coverage flags if defined
+if(MY_COVERAGE_COMPILE_OPTIONS)
+    target_compile_options(sid-json-tests PRIVATE ${MY_COVERAGE_COMPILE_OPTIONS})
+    target_link_options(sid-json-tests PRIVATE ${MY_COVERAGE_LINK_OPTIONS})
 endif()
 
 # Add test

@@ -131,8 +131,8 @@ To generate and view code coverage in VS Code:
 3. **Generate coverage report:**
   - For GCC/gcov:
     ```bash
-    lcov --capture --directory . --output-file coverage.info
-    lcov --remove coverage.info '/usr/*' --output-file coverage.info
+    lcov --ignore-errors inconsistent --capture --directory . --output-file coverage.info
+    lcov --ignore-errors inconsistent --remove coverage.info '/usr/*' '*/_deps/*' --output-file coverage.info
     genhtml coverage.info --output-directory coverage_html
     ```
   - For Clang/llvm-cov:
