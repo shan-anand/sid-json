@@ -87,6 +87,15 @@ if (val.is_object()) { /* handle object */ }
 
 ## Building
 
+### Selecting the toolchain on linux
+#### Switch to Clang (Assuming g++ and gcc are 20)
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 30
+sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 30
+
+#### Switch to GCC (Assuming g++ and gcc are 20)
+sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 10
+sudo update-alternatives --install /usr/bin/cc cc /usr/bin/clang 10
+
 ### Using CMake
 ```bash
 mkdir build
@@ -137,9 +146,9 @@ To generate and view code coverage in VS Code:
     ```
   - For Clang/llvm-cov:
     ```bash
-    llvm-profdata merge -sparse default.profraw -o default.profdata
-    llvm-cov export ./sid-json-tests -instr-profile=default.profdata -format=lcov > coverage.info
-    llvm-cov show ./path/to/test-binary -instr-profile=default.profdata -format=html -output-dir=coverage_html
+    llvm-profdata merge -sparse ./unittests/json/default.profraw -o default.profdata
+    llvm-cov export ./unittests/json/sid-json-tests -instr-profile=default.profdata -format=lcov > coverage.info
+    llvm-cov show ./unittests/json/sid-json-tests -instr-profile=default.profdata -format=html -output-dir=coverage_html
     ```
 
 4. **View coverage in VS Code:**
